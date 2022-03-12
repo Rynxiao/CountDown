@@ -8,7 +8,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
@@ -18,17 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
-import androidx.lifecycle.ViewModel
 import com.tutorials.countdown.ui.theme.bgColorCenter
 import com.tutorials.countdown.ui.theme.bgColorEdge
-import com.tutorials.countdown.ui.theme.lightYellow
+import com.tutorials.countdown.ui.theme.darkOrange
 import kotlinx.coroutines.*
 import kotlin.math.*
 
-val Offset.theta: Float get() = (atan2(y.toDouble(), x.toDouble()) * 180.0 / PI).toFloat()
 const val StartRadiusFraction = 0.5f
 const val EndRadiusFraction = 0.75f
 const val TickWidth = 9f
@@ -36,11 +32,11 @@ const val TickWidth = 9f
 @Composable
 fun Countdown() {
     val scope = rememberCoroutineScope()
-    val state = remember { CountDownState(scope = scope) }
+    val state = remember { CountDownState(scope = scope, counts = 30) }
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.radialGradient(listOf(bgColorCenter, bgColorEdge))),
+            .background(Brush.radialGradient(listOf(bgColorCenter, state.bgEdge))),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -68,12 +64,18 @@ fun Countdown() {
     }
 }
 
-class CountDownState(private val scope: CoroutineScope) {
-    private var seconds by mutableStateOf(60)
+class CountDownState(
+    private val scope: CoroutineScope,
+    private val counts: Int
+) {
+    private var job: Job? = null
+    private var seconds by mutableStateOf(counts)
     var tickTheta by mutableStateOf(0f)
     var text by mutableStateOf("${seconds}s")
     var isPaused by mutableStateOf(true)
-    private var job: Job? = null
+    var bgEdge by mutableStateOf(bgColorEdge.copy(seconds / counts.toFloat()))
+
+    private val angleInEverySecond = 360 / counts
 
     fun start() {
         isPaused = false
@@ -81,24 +83,32 @@ class CountDownState(private val scope: CoroutineScope) {
             while (seconds > 0 && !isPaused) {
                 delay(1000)
                 val nextSecond = seconds - 1
+                val alphaFraction = ((counts - nextSecond) / counts.toFloat()) / 2f
+
                 seconds = nextSecond
-                tickTheta = (360 - 6 * nextSecond).toFloat()
+                tickTheta = (360 - angleInEverySecond * nextSecond).toFloat()
                 text = "${nextSecond}s"
+                bgEdge = bgColorEdge.copy(nextSecond / counts.toFloat() + alphaFraction)
+            }
+
+            if (seconds == 0) {
+                stop()
             }
         }
     }
 
     fun pause() {
         isPaused = true
+        job?.cancel()
+        job = null
     }
 
     fun stop() {
-        job?.cancel()
-        job = null
-        isPaused = true
-        seconds = 60
+        pause()
+        seconds = counts
         tickTheta = 0f
-        text = "60s"
+        text = "${counts}s"
+        bgEdge = bgColorEdge
     }
 }
 
@@ -126,7 +136,7 @@ fun TickWheel(ticks: Int, state: CountDownState) {
                         sin(theta) * endRadius,
                     )
                     drawLine(
-                        if (on) lightYellow else Color.White.copy(alpha = 0.3f),
+                        if (on) darkOrange else Color.White.copy(alpha = 0.3f),
                         center + startPos,
                         center + endPos,
                         TickWidth,
