@@ -10,50 +10,51 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class CountDownState(
-    private val scope: CoroutineScope,
-    private val counts: Int
-) {
-    private var job: Job? = null
-    private var seconds by mutableStateOf(counts)
-    var tickTheta by mutableStateOf(0f)
-    var text: String by mutableStateOf(DateUtils.formatElapsedTime(counts.toLong()))
-    var isPaused by mutableStateOf(true)
-    var bgEdge by mutableStateOf(bgColorEdge.copy(seconds / counts.toFloat()))
+class CountDownState(private val scope: CoroutineScope) {
+    var totalSeconds by mutableStateOf(60)
+    var ticks by mutableStateOf(60)
+    var angleInEverySecond by mutableStateOf(360f / totalSeconds)
 
-    private val angleInEverySecond = 360 / counts
+    private var job: Job? = null
+    private var currentSeconds by mutableStateOf(totalSeconds)
+    var tickTheta by mutableStateOf(0f)
+    var text: String by mutableStateOf(DateUtils.formatElapsedTime(totalSeconds.toLong()))
+    var isPaused by mutableStateOf(true)
+    var bgEdge by mutableStateOf(bgColorEdge.copy(currentSeconds / totalSeconds.toFloat()))
 
     fun start() {
         isPaused = false
         job = scope.launch {
-            while (seconds > 0 && !isPaused) {
+            while (currentSeconds > 0 && !isPaused) {
                 delay(1000)
-                val nextSecond = seconds - 1
-                val alphaFraction = ((counts - nextSecond) / counts.toFloat()) * 0.65f
+                val nextSecond = currentSeconds - 1
+                val alphaFraction = ((totalSeconds - nextSecond) / totalSeconds.toFloat()) * 0.65f
 
-                seconds = nextSecond
+                currentSeconds = nextSecond
                 tickTheta = (360 - angleInEverySecond * nextSecond).toFloat()
                 text = DateUtils.formatElapsedTime(nextSecond.toLong())
-                bgEdge = bgColorEdge.copy(nextSecond / counts.toFloat() + alphaFraction)
+                bgEdge = bgColorEdge.copy(nextSecond / totalSeconds.toFloat() + alphaFraction)
             }
 
-            if (seconds == 0) {
+            if (currentSeconds == 0) {
                 stop()
             }
         }
     }
 
     fun pause() {
-        isPaused = true
-        job?.cancel()
-        job = null
+        if (!isPaused || job != null) {
+            isPaused = true
+            job?.cancel()
+            job = null
+        }
     }
 
     fun stop() {
         pause()
-        seconds = counts
+        currentSeconds = totalSeconds
         tickTheta = 0f
-        text = DateUtils.formatElapsedTime(counts.toLong())
+        text = DateUtils.formatElapsedTime(totalSeconds.toLong())
         bgEdge = bgColorEdge
     }
 }

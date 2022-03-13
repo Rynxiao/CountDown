@@ -1,5 +1,6 @@
 package com.tutorials.countdown.components
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
@@ -26,7 +27,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
-fun TickWheel(ticks: Int, state: CountDownState) {
+fun TickWheel(state: CountDownState) {
     Box(
         Modifier
             .fillMaxWidth()
@@ -37,8 +38,8 @@ fun TickWheel(ticks: Int, state: CountDownState) {
                 val startRadius = size.width / 2 * StartRadiusFraction
                 val endRadius = size.width / 2 * EndRadiusFraction
 
-                for (i in 0 until ticks) {
-                    val angle = i * (360 / ticks)
+                for (i in 0 until state.ticks) {
+                    val angle = i * (360f / state.ticks)
                     val on = angle < state.tickTheta
                     val theta = angle * PI.toFloat() / 180f
                     val startPos = Offset(
