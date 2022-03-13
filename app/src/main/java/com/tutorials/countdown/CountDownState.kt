@@ -16,27 +16,27 @@ class CountDownState(private val scope: CoroutineScope) {
     var angleInEverySecond by mutableStateOf(360f / totalSeconds)
 
     private var job: Job? = null
-    private var currentSeconds by mutableStateOf(totalSeconds)
+    var secondsLeft by mutableStateOf(totalSeconds)
     var tickTheta by mutableStateOf(0f)
     var text: String by mutableStateOf(DateUtils.formatElapsedTime(totalSeconds.toLong()))
     var isPaused by mutableStateOf(true)
-    var bgEdge by mutableStateOf(bgColorEdge.copy(currentSeconds / totalSeconds.toFloat()))
+    var bgEdge by mutableStateOf(bgColorEdge.copy(secondsLeft / totalSeconds.toFloat()))
 
     fun start() {
         isPaused = false
         job = scope.launch {
-            while (currentSeconds > 0 && !isPaused) {
+            while (secondsLeft > 0 && !isPaused) {
                 delay(1000)
-                val nextSecond = currentSeconds - 1
+                val nextSecond = secondsLeft - 1
                 val alphaFraction = ((totalSeconds - nextSecond) / totalSeconds.toFloat()) * 0.65f
 
-                currentSeconds = nextSecond
+                secondsLeft = nextSecond
                 tickTheta = (360 - angleInEverySecond * nextSecond).toFloat()
                 text = DateUtils.formatElapsedTime(nextSecond.toLong())
                 bgEdge = bgColorEdge.copy(nextSecond / totalSeconds.toFloat() + alphaFraction)
             }
 
-            if (currentSeconds == 0) {
+            if (secondsLeft == 0) {
                 stop()
             }
         }
@@ -52,7 +52,7 @@ class CountDownState(private val scope: CoroutineScope) {
 
     fun stop() {
         pause()
-        currentSeconds = totalSeconds
+        secondsLeft = totalSeconds
         tickTheta = 0f
         text = DateUtils.formatElapsedTime(totalSeconds.toLong())
         bgEdge = bgColorEdge

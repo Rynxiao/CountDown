@@ -11,10 +11,6 @@ import com.tutorials.countdown.components.TickSlider
 import com.tutorials.countdown.components.TickWheel
 import com.tutorials.countdown.ui.theme.bgColorCenter
 
-const val StartRadiusFraction = 0.5f
-const val EndRadiusFraction = 0.75f
-const val TickWidth = 9f
-
 @Composable
 fun Countdown() {
     val scope = rememberCoroutineScope()
