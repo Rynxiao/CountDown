@@ -1,5 +1,6 @@
 package com.tutorials.countdown
 
+import android.text.format.DateUtils
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,7 +17,7 @@ class CountDownState(
     private var job: Job? = null
     private var seconds by mutableStateOf(counts)
     var tickTheta by mutableStateOf(0f)
-    var text by mutableStateOf("${seconds}s")
+    var text: String by mutableStateOf(DateUtils.formatElapsedTime(counts.toLong()))
     var isPaused by mutableStateOf(true)
     var bgEdge by mutableStateOf(bgColorEdge.copy(seconds / counts.toFloat()))
 
@@ -32,7 +33,7 @@ class CountDownState(
 
                 seconds = nextSecond
                 tickTheta = (360 - angleInEverySecond * nextSecond).toFloat()
-                text = "${nextSecond}s"
+                text = DateUtils.formatElapsedTime(nextSecond.toLong())
                 bgEdge = bgColorEdge.copy(nextSecond / counts.toFloat() + alphaFraction)
             }
 
@@ -52,7 +53,7 @@ class CountDownState(
         pause()
         seconds = counts
         tickTheta = 0f
-        text = "${counts}s"
+        text = DateUtils.formatElapsedTime(counts.toLong())
         bgEdge = bgColorEdge
     }
 }

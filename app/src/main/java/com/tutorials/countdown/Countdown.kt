@@ -17,7 +17,7 @@ const val TickWidth = 9f
 @Composable
 fun Countdown() {
     val scope = rememberCoroutineScope()
-    val state = remember { CountDownState(scope = scope, counts = 30) }
+    val state = remember { CountDownState(scope = scope, counts = 60) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -25,7 +25,7 @@ fun Countdown() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TickWheel(ticks = 40, state = state)
+        TickWheel(ticks = 60, state = state)
         ActionRow(state = state)
     }
 }
